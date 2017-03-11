@@ -5,6 +5,7 @@ Created on Thu Mar  9 03:39:23 2017
 @author: david
 """
 import json
+import mysql.connector
 
 folder = '/Users/david/Documents/Big Data/Yelp/{}'
 file_extension = 'yelp_academic_dataset_{}.json'
@@ -60,6 +61,30 @@ def data_size(data, data_type, max_size):
         for item in data:
             max_size = data_size(item, data_type['list type'], max_size)
         return(max_size)
+    
+def load_file(file_name, type_dict, table_name):
+    cnx = mysql.connector.connect(user='david', password='Pw',
+                              host='localhost')
+    cursor = cnx.cursor()
+    cursor.execute('USE yelp')
+    
+    with open(file_path[file_name]) as file:
+        for line in file:
+            data = json.loads(line)
+            for key in type_dict:
+                if (type_dict['item_type'] != 'int'):
+                    data[key] = '"{}"'.format(str(data[key]))
+                else:
+                    data[key] = str(data[key])
+                
+            cursor.execute(insert_template.format(
+                    table=table_name,
+                    keys=",".join(type_dict.keys()),
+                    values=",".join(data.values())))
+                
+                
+            
+                    
             
             
             
