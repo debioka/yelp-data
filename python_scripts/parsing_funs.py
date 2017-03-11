@@ -5,22 +5,14 @@ Created on Thu Mar  9 03:39:23 2017
 @author: david
 """
 import json
-import mysql.connector
-
 
 folder = '/Users/david/Documents/Big Data/Yelp/{}'
-file_names = ['yelp_academic_dataset_business.json',
-              'yelp_academic_dataset_checkin.json',
-              'yelp_academic_dataset_review.json',
-              'yelp_academic_dataset_tip.json',
-              'yelp_academic_dataset_user.json']
-file_paths = [folder.format(file) for file in file_names]
-
-
-def file_itereator(path, function):
-    with open(path, 'r') as file:
-        for line in file:
-            function(json.loads(line))
+file_extension = 'yelp_academic_dataset_{}.json'
+file_path = {}
+for name in ['business','checkin','review','tip','user']:
+    file_path[name] = folder.format(file_extension.format(name))
+    
+insert_template = 'INSERT INTO {table} ({keys}) VALUES ({values});'
 
 # creates type dict where each key corrseponds to the dictionary with keys
 # type, options, and if type was a list, list type.     
