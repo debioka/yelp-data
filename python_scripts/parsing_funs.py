@@ -39,27 +39,6 @@ def set_type_dict(file_name):
                                      'options' : item_options}
     return(type_dict)
 
-          
-# finds the largest data type size
-def max_size(path, type_dict):
-    size_dict = {}
-    for key in type_dict:
-        size_dict[key] = 0
-    with open(path, 'r') as file:
-        for line in file:
-            size_dict = data_size(json.loads(line), type_dict, size_dict)
-    return(size_dict)
-
-def data_size(data, data_type, max_size):
-    if (data_type['type'] == 'varchar'):
-        return(max([len(data), max_size]))
-    if (data_type['type'] == 'int'):
-        return(max([data, max_size]))
-    if (data_type['type'] == 'line'):
-        for item in data:
-            max_size = data_size(item, data_type['list type'], max_size)
-        return(max_size)
-    
 def load_file(file_name, type_dict, table_name):
     
     cnx = mysql.connector.connect(user='david', password='Pw',
@@ -67,13 +46,14 @@ def load_file(file_name, type_dict, table_name):
     cursor = cnx.cursor()
     cursor.execute('USE yelp')
     insert_template = 'INSERT INTO {table} ({keys}) VALUES ({values});'
+    non_str_types = ['int', 'bit']
     
     with open(file_path[file_name]) as file:
         for line in file:
             obj = json.loads(line)
             data = {}
             for key in type_dict:
-                if (type_dict[key]['type'] != 'int'):
+                if type_dict[key]['type'] not in non_str_types:
                     data[key] = '"{}"'.format(str(obj[key]))
                 else:
                     data[key] = str(obj[key])
@@ -95,11 +75,37 @@ def make_table(file_name, type_dict, table_name, options=''):
     columns_list = []
     for key in type_dict:
         columns_list.append('"{col_name}"" {col_type}{col_details}'.format(
-                col_name = key,
-                col_type = type_dict[key]['type'],
-                details  = type_dict[key]['options'])
+                            col_name = key,
+                            col_type = type_dict[key]['type'],
+                            col_details  = type_dict[key]['options']))
          
-    cursor.execute('CREATE TABLE {table} ({columns}{col_options});' .format(
-            table       = table_name,
-            columns     = ', '.join(columns_list),
-            col_options = options))
+    cursor.execute('CREATE TABLE {table} ({columns}{col_options});'.format(
+                        table       = table_name,
+                        columns     = ', '.join(columns_list),
+                        col_options = options))
+    
+    
+#==============================================================================
+# experimental    
+#==============================================================================
+          
+# finds the largest data type size
+def max_size(path, type_dict):
+    size_dict = {}
+    for key in type_dict:
+        size_dict[key] = 0
+    with open(path, 'r') as file:
+        for line in file:
+            size_dict = data_size(json.loads(line), type_dict, size_dict)
+    return(size_dict)
+
+def data_size(data, data_type, max_size):
+    if (data_type['type'] == 'varchar'):
+        return(max([len(data), max_size]))
+    if (data_type['type'] == 'int'):
+        return(max([data, max_size]))
+    if (data_type['type'] == 'line'):
+        for item in data:
+            max_size = data_size(item, data_type['list type'], max_size)
+        return(max_size)
+    
