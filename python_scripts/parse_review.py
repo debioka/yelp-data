@@ -5,7 +5,6 @@ Created on Fri Mar 10 23:49:02 2017
 @author: david
 """
 
-from parsing_funs import set_type_dict, file_path
 import mysql.connector
 import json
 
@@ -15,5 +14,3 @@ cursor = cnx.cursor()
 cursor.execute('USE yelp')
 
 review_type = set_type_dict(file_path['review'])
-
-with 
